@@ -40,7 +40,7 @@ end
 function normalize(testset, control)
   normtest = Dict{String,Float64}();
   for k in keys(testset)
-    c = get(control,k,1);
+    c = get(control,k,0)+1;
     normtest[k] = (testset[k]-c)/(testset[k]+c);
   end
   normtest
