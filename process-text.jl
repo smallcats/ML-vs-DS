@@ -1,8 +1,14 @@
 function texttowords(text)
+  #=
+  Converts a string into an array of words.
+  =#
   matchall(r"(\w+)",lowercase(replace(text, r"([\r\n,\.\(\)!;:\?/]|\ufeff)", s" ")))
 end
 
 function wordcount(wordvec)
+  #=
+  Converts an array of words into a dictionary of word counts with words as keys.
+  =#
   worddict = Dict{String,Int64}()
   for w in wordvec
     worddict[w]=get(worddict,w,0) + 1
@@ -37,15 +43,42 @@ function subdicts(d1, d2)
   diffdict
 end
 
-function normalize(testset, control)
-  normtest = Dict{String,Float64}()
-  for k in keys(testset)
+function normalize(sample, control)
+  #=
+  Gets WordNorm_sample,control as a dict
+
+  args: sample: a dict of the sample's word counts
+        control: a dict of the control's word counts
+
+  returns: normsample: a dict with the same keys as sample, but WordNorm_sample,control(word) as values
+  =#
+  normsample = Dict{String,Float64}()
+  for k in keys(sample)
     c = get(control,k,0)+1
-    normtest[k] = (testset[k]-c)/(testset[k]+c)
+    normsample[k] = (sample[k]-c)/(sample[k]+c)
   end
-  normtest
+  normsample
 end
 
-function maxwords(testset, numwords)
-  sort(collect(testset), by=tuple -> last(tuple),rev=true)[1:numwords]
+function compare(sample, csample)
+  #=
+  Gets a slightly modified version of WordNorm for comparing one sample to another. Antisymmetric in the
+    sense that compare(a,b)[k] = -compare(b,a)[k].
+  =#
+  comp = Dict{String,Float64}()
+  for k in keys(sample)
+    c = get(csample,k,0)
+    comp[k] = (sample[k]-c)/(sample[k]+c+1)
+  end
+  comp
+end
+
+function maxwords(sample, numwords)
+  #=
+  Gets the words with highest WordNorm in the sample.
+  args: sample: WordNorm dict
+        numwords: an integer
+  returns: an array of pairs (word, WordNorm(word))
+  =#
+  sort(collect(sample), by=tuple -> last(tuple),rev=true)[1:numwords]
 end
