@@ -16,6 +16,10 @@
 \usepackage{xcolor}
 \usepackage{amsthm}
 \usepackage[space]{grffile}
+\usepackage{float}
+
+\floatstyle{boxed} 
+\restylefloat{figure}
 
 \graphicspath{ {C:/Users/Geoffrey/} }
 \pgfplotsset{compat=1.12}
@@ -50,6 +54,18 @@
 
 %\renewcommand{\labelenumi}{(\alph{enumi})}
 \renewcommand{\labelenumi}{\textbf{(\alph{enumi})}}
+
+\definecolor{o5}{RGB}{247,163,46}
+\definecolor{o4}{RGB}{249,181,88}
+\definecolor{o3}{RGB}{250,200,130}
+\definecolor{o2}{RGB}{252,218,171}
+\definecolor{o1}{RGB}{253,237,213}
+\definecolor{w}{RGB}{255,255,255}
+\definecolor{b1}{RGB}{209,213,252}
+\definecolor{b2}{RGB}{163,171,250}
+\definecolor{b3}{RGB}{116,130,247}
+\definecolor{b4}{RGB}{70,88,245}
+\definecolor{b5}{RGB}{242,46,242}
 
 \newtheorem{definition}{Definition}
 
@@ -132,4 +148,17 @@ Machine learning frameworks TensorFlow and Caffe are both represented with a str
 \end{center}
 \caption{\label{fig:WNp} The result of comparing machine learning to data science with $\WNp$. Positive scores indicate stronger association with machine learning, and negative scores indicate stronger association with data science.}
 \end{figure}
+
+Using the $\WNp$ score, we can score any text in terms of whether it is more closely associated with data science or machine learning. For example, the Insight Data Science Fellows Program has a white paper with a section titled "What is a Data Scientist?". We can score this text, word by word, and then average to get a score of -0.13 indicating a closer association with data science than with machine learning.
+
+Figure \ref{fig:InsightColored} shows the first 40 words of this document, each colored according to their $\WNp$ score.
+
+\begin{figure}[H]
+the amount of data produced across the globe has been increasing
+exponentially and will continue to grow at an accelerating rate for the foreseeable future at companies across all industries servers are overflowing with usage logs message streams transaction records\\
+
+{\color{b1}the} {\color{o1}amount} {\color{b1}of} {\color{b2}data} {\color{w}produced} {\color{b1}across} {\color{b1}the} {\color{b1}globe} {\color{b1}has} {\color{b2}been} {\color{w}increasing} {\color{w}exponentially} {\color{b1}and} {\color{b1}will} {\color{w}continue} {\color{b1}to} {\color{b2}grow} {\color{b1}at} {\color{b1}an} {\color{w}accelerating} {\color{o3}rate} {\color{b1}for} {\color{b1}the} {\color{w}foreseeable} {\color{b2}future} {\color{b1}at} {\color{b3}companies} {\color{b1}across} {\color{b2}all} {\color{w}industries} {\color{w}servers} {\color{b1}are} {\color{w}overflowing} {\color{b1}with} {\color{b1}usage} {\color{w}logs} {\color{o2}message} {\color{o1}streams} {\color{b1}transaction} {\color{w}records}
+\caption{\label{fig:InsightColored} The first 40 words of "What is a Data Scientist?" from the Insight Data Science Fellows white paper, first uncolored, then colored according to its $\WNp$ score. Data science associated words are blue, machine learning associated words are in orange, and lighter means closer to 0.}
+\end{figure}
+
 \end{document}

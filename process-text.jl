@@ -60,7 +60,7 @@ function normalize(sample, control)
   normsample
 end
 
-function compare(sample, csample)
+function comparenorm(sample, csample)
   #=
   Gets a slightly modified version of WordNorm for comparing one sample to another. Antisymmetric in the
     sense that compare(a,b)[k] = -compare(b,a)[k].
@@ -81,4 +81,28 @@ function maxwords(sample, numwords)
   returns: an array of pairs (word, WordNorm(word))
   =#
   sort(collect(sample), by=tuple -> last(tuple),rev=true)[1:numwords]
+end
+
+function scoretext(textvec, scoredict, default=0)
+  #=
+  Gets WordNorm scores for an array of words.
+  args: textvec: an array of words
+        scoredict: a dict of WordNorm scores
+        default: a default value for unscored words
+  returns: an array of scores, 0 for words not in scoredict
+  =#
+  [get(scoredict, k, default) for k in textvec]
+end
+
+function colorinterp(wordscore, c1=(247,163,46), c2=(24,46,242))
+  #=
+  Interpolates between 1 = c1 and -1 = c2
+  =#
+  if wordscore > 0
+    return [Int64(round(wordscore*(c1[k]-255)+255)) for k = 1:3]
+  elseif wordscore == 0
+    return [255,255,255]
+  else
+    return [Int64(round(wordscore*(255-c2[k])+255)) for k = 1:3]
+  end
 end

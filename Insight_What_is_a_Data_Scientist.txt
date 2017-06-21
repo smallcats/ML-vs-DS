@@ -1,0 +1,29 @@
+﻿The amount of data produced across the globe has been increasing
+exponentially and will continue to grow at an accelerating rate for the foreseeable
+future. At companies across all industries, servers are overflowing with usage
+logs, message streams, transaction records, sensor data, business operations
+records and mobile device data. Effectively analyzing these huge collections of
+data, can create significant value for the world economy by enhancing
+productivity, increasing efficiency and delivering more value to consumers.
+Studies estimate that trillions of dollars of value in efficiency improvements and
+economic growth can be unlocked by extracting actionable knowledge from the
+deluge of data now being collected in almost every sector of the economy .
+1
+“We are on the cusp of a tremendous wave of innovation, productivity, and
+growth, as well as new modes of competition and value capture—all driven by big
+data as consumers, companies, and economic sectors exploit its potential,” write
+the authors of Big Data: The Next Frontier for Innovation, Competition, and
+Productivity, a comprehensive research study published in 2011 by the McKinsey
+Global Institute.
+Nowhere has the benefit of analyzing data been felt more strongly than at top
+technology companies. Insight was founded in Silicon Valley, where companies
+are not only leading in the production of data, they are also on the cutting edge of
+using insights from that data to benefit their users. In fact, the role of data
+scientist, now used throughout industry to describe highly specialized analysts
+with deep quantitative abilities, was coined by the heads of the early data teams
+at Facebook and LinkedIn. They realized that the process of asking questions
+about product use cases, taking measurements, verifying hypotheses and building
+upon those results closely mirrored the process by which science is done. The
+individuals, therefore, who apply their curiosity, quantitative skills and intellect
+toward understanding big data are now known as data scientists - a job title that
+is one of the most in-demand job roles at today’s leading companies .
