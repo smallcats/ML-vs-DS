@@ -1,0 +1,47 @@
+﻿Our clients seeks an experianced leader who will sit at the intersection of analytics, data management & IT/software infrastructure in the Center for Data Science and Analytics is an innovative corporate Analytics group within the business. They are a rapidly growing entrepreneurial department which aims to design, create and offer innovative data-driven solutions to many parts of the enterprise. They are aided by the existing business with a large market share in life insurance. They have the freedom to explore external data sources and new statistical techniques, and are excited about delivering a whole new generation of Analytical solutions.
+
+In fact, its designing and will build the first multivariate model-based continuous risk differentiation in the industry, essentially a full rating plan that will drive the underwriting process and likely a revolution in the whole industry. This is just one of several projects with huge business value. Geographic analytics on agents and customers, application fraud detection, agent success prediction and client prospecting analytics (off-line and on-line) are other exciting examples of enormous incremental value from analytics. The products are implemented into real-time core business processes and decisions that drive the company (e.g. underwriting, pricing, agent recruiting, prospecting, new product development).
+
+This client works with data ranging from demographics, credit and geo data to detailed medical data (medical test results, diagnosis, prescriptions) and social media information. There’s a modern computing environment with a solid suite of data science/modeling tools and packages, and a large (but manageable) group of well-trained professionals at various levels to support you. Life insurance is on the verge of huge change. This is a chance to be part of, actually to drive, the transformation of an industry. Is this not why we became data scientists?
+
+You will apply your highly developed analytical skills to work on all aspects of the life insurance value chain, ranging from risk models, fraud detection, process triaging, and marketing predictions to a variety of other analytics solutions.
+
+You will apply your leadership experience, high energy level and business sense to supervise staff, ingest and wrangle data, manage analytics projects, propose analytics strategy, create related business cases, drive several large initiatives, build and implement solutions at scale and give presentations as a subject matter expert. You’ll lead a data-specific team, mostly concerned with preparing internal and external data for modeling projects. This includes receiving and initially exploring external vendor data (some of which will be new to the environment) as well as consolidating internal data from various sources. This role is the data expert in the Center for Data Science and Analytics and will have visibility towards all project, participate in analytics design, and decisions on what is feasible to do. It interacts with many internal and external stakeholders.
+
+Responsibilities
+
+1. Ingests, understands, merges various novel external and internal datasets and prepares them for a variety of advanced analytics projects. Functions as data expert, substantially contributes to analytics/solutions design and productizing decisions.
+
+2. Independently leads data analysis and modeling projects from project/sample design, business review meetings with internal and external clients deriving requirements/deliverables, reception and processing of data and performing analyses to final reports/presentations, communication of results and implementation support.
+
+3. Tests new analytical software, platforms and methods for continual improvement of our environment, skill sets and solutions.
+
+4. Proactively and effectively communicates in various verbal and written formats with internal stakeholders on product design, data specification, model implementations, with partners on collaboration ideas and specifics, with clients and account teams on project/test results, opportunities, questions. Resolves problems and removes obstacles to timely and high-quality project completion.
+
+5. Manages staff including goal setting, performance evaluation, effective resource allocation and career/skill development, hiring and training.
+
+6. Actively contributes to analytics strategy by contributing ideas, preparing presentation material for internal stakeholders, and product design/business case materials for NYL leadership.
+
+7. Follows industry trends in insurance and related data/analytics processes and businesses.
+
+8. Assures compliance with regulatory and privacy requirements during design and implementation of modeling and analysis projects.
+
+9. Travels to events and vendor meetings as needed (< 10%).
+
+Required qualifications
+
+· Advanced degree with concentration in a quantitative discipline such as statistics, computer science, mathematics, economics, or operations research OR Associateship/Fellowship in one of the Actuarial Societies (CAS or SOA).
+
+· 6+ years of experience with data wrangling using large and complex datasets. Experience with life, health or P&C insurance data is a plus.
+
+· 2+ years of management experience. Proven ability to effectively manage own and associates’ time while multitasking between multiple, time-sensitive projects and competing priorities in a dynamic business environment while maintaining strong, productive relationships with internal stakeholders and external partners. Ability to provide technical guidance to direct reports.
+
+· Special aptitude for ingesting, understanding, cleaning, merging and exploring multiple large and complex internal and external datasets. Ability to insightfully consult on a variety of analytics projects by functioning as the data expert.
+
+· Proficiency in SAS, R, SQL, Python and/or similar software as well as Oracle, SQL, Hadoop and other database systems.
+
+· Strong verbal and written communications skills, listening and teamwork skills, and effective presentation skills. This is absolutely essential since you will have a lot of exposure to different internal groups (data, IT, actuarial, medical, underwriting, Legal, Agency, government relations, etc.) as well as third-party data partners.
+
+· Demonstrated experience in strategic and analytical leadership. Executive presence on high-level meetings. Credible functional expertise in data science, especially data wrangling.
+
+· Understanding of statistical modeling concepts, designs and analytics-based products. Proficiency in creating effective and visually appealing PowerPoint presentations.

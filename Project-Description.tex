@@ -20,7 +20,6 @@
 
 \floatstyle{boxed} 
 \restylefloat{figure}
-
 \graphicspath{ {C:/Users/Geoffrey/} }
 \pgfplotsset{compat=1.12}
 \textwidth 1.2\textwidth
@@ -37,6 +36,9 @@
 \DeclareMathOperator{\WN}{WordNorm}
 \DeclareMathOperator{\WNt}{WordNormCtrl}
 \DeclareMathOperator{\WNp}{WordNormComp}
+\DeclareMathOperator{\TS}{TextScore}
+\DeclareMathOperator{\atanh}{arctanh}
+\DeclareMathOperator*{\mean}{Mean}
 
 \newcommand{\onto}{\twoheadrightarrow}
 \newcommand{\mono}{\rightarrowtail}
@@ -76,11 +78,11 @@
 \begin{document}
 
 \maketitle
-\section{Introduction} Data science is the practice of extracting useful information from data. Machine learning is a set of programming techniques in which the programmer sets up a model with variable parameters and a method by which these parameters will be "learned" from data. There. Question answered. In practice, however, when searching for a job, it isn't so clear. Because of the large overlap between the two, a job listed as a data science job may really be more of a machine learning job, and vice versa. And say you want to pick up a few new, relevant skills, but you are primarily interested in one of the two fields. Can we disentangle which skills are more relevant to your chosen field?
+\section{Introduction} Data science is the practice of extracting useful information from data. Machine learning is a set of programming techniques in which the programmer sets up a model with variable parameters and a method by which these parameters will be "learned" from data. There. Question answered. In practice, however, when searching for a job, it isn't so clear. Because of the large overlap between the two, a job listed as a data science job may really be more of a machine learning job, and vice versa. And perhaps you want to pick up a few new, relevant skills, but you are interested in one of the two fields, and not the other. Can we disentangle which skills are more relevant to your chosen field from the job descriptions posted for applicants?
 
-The goal of this project is to use textual analysis to distinguish between these two fields. Code is written in the new and exciting programming language Julia. This document was produced using LaTeX \ednote{cite these}.
+The goal of this project is to use textual analysis to solve this issue. Code was written in the new and exciting programming language Julia. This document was produced using \LaTeX\ and Julia (figures all come from Julia\cite{Julia} or from \LaTeX\ code produced by Julia code).
 
-\section{Data} The data for this project is 150 posted job descriptions. They are divided into three parts, the machine learning descriptions (50), the data science descriptions (50), and the control descriptions (50). These were gathered by doing searches for the relevant words ("machine learning job"/"data science job"/"job"), and then divided into sequences of words using regular expressions. In Julia this is implemented as:
+\section{Data} The data for this project is 150 posted job descriptions\cite{LinkedIn}. They are divided into three datasets, the machine learning descriptions (50), the data science descriptions (50), and the control descriptions (50). These were gathered by doing searches for the relevant words ("machine learning job"/"data science job"/"job"), and then divided into sequences of words using regular expressions. In Julia this is implemented as:
 
 \begin{verbatim} 
 function texttowords(text)
@@ -91,7 +93,7 @@ function texttowords(text)
 end
 \end{verbatim}
 
-The sequences of words were then divided into three "bags of words" (i.e. word counts) for each of the search terms.
+The sequences of words were then divided into "bags of words" (i.e. word counts), one for each of the datasets.
 
 \begin{verbatim}
 function wordcount(wordvec)
@@ -103,29 +105,39 @@ function wordcount(wordvec)
 end
 \end{verbatim} 
 
-\section{WordNorm} To compare two bags of words, we will use two variations on what we will call "WordNorm" (non-technical folks can skip to the tldr at the end if this section, if you want). For word counts $\alpha$ and $\beta$ (e.g. $\alpha = \text{data science}$ and $\beta = \text{control}$) and word $w$, the ideal version of WordNorm
+\section{WordNorm} To compare two of the datasets, we will use two variations on what we will call "WordNorm" (for non-technical folks, you can skip from here to the tldr at the end if this section, if you want). For datasets $\alpha$ and $\beta$ (e.g. $\alpha = \text{data science}$ and $\beta = \text{control}$) and word $w$, the ideal version of WordNorm
 \begin{equation} \label{eqn:WordNorm}
- \WN_{\alpha\beta}(w) = \frac{\alpha(w)-\beta(w)}{\alpha(w)+\beta(w)}.
+ \WN_{\alpha\beta}(w) = \frac{\alpha(w)-\beta(w)}{\alpha(w)+\beta(w)}
 \end{equation}
-We will write $\WN(w)$ when the choice of $\alpha$ and $\beta$ are clear or irrelevant. Note that 
+where $\alpha(w)$ (resp. $\beta(w)$) indicates the word count for $w$ in $\alpha$. We will write $\WN(w)$ when the choice of $\alpha$ and $\beta$ are clear or irrelevant. Note that 
 \[
  \WN(w) = \begin{cases} 1 & w \in \alpha \smallsetminus \beta \\ -1 & w \in \beta \smallsetminus \alpha \end{cases}
 \]
 and that $1$ and $-1$ are the maximum and minimum values of $\WN$. So, if $w$ is near $1$, it is much more closely associated to $\alpha$, and if $w$ is near $-1$, it is much more closely associated to $\beta$. In an ideal setting, with a very large amount of data (so that each word count has at least one of each word), this would work well, however in a practical setting there is an issue. For example, suppose we're interested in comparing the word "dog" to the word "cat", and $\alpha(\text{"dog"}) = 5$, $\alpha(\text{"cat"}) = 1$, but $\beta(\text{"dog"})=\beta(\text{"cat"})=0$. $\WN$ does not distinguish between "dog" and "cat"! $\WN(\text{"dog"})=\WN(\text{"cat"}) = 1$, despite the fact that it is clear that $\alpha$ is probably more strongly associated with "dog" than it is with "cat". To deal with this problem, we will use the two modifications that follow.
 
-When comparing a sample $\alpha$ (e.g. the counts of words in machine learning job descriptions) to a control sample (which we write as $c$) we use
+When comparing a sample dataset $\alpha$ (e.g. the counts of words in machine learning job descriptions) to the control dataset (which we write as $c$) we use
 \begin{equation} \label{eqn:WordNormCtrl}
  \WNt_\alpha(w) = \frac{\alpha(w) - (c(w)+1)}{\alpha(w) + (c(w) + 1)}
 \end{equation}
-where we've written the parentheses to emphasize the interpretation that $\WNt$ is just $\WN$ where we've added one of each word to the control sample. Now using $\beta$ in the example above as a control, we get $\WNt(\text{"dog"})=\frac{2}{3}$ and $\WNt(\text{"cat"})=0$. For our setting $\WNt$ has the nice feature that common words  ("is", "the", etc.) and general job words ("applicant", "responsibilities") get a score close to $0$, and so when we are looking at the top scores, these are automatically ignored. It loses the (anti)symmetry of $\WN$, but this is acceptable, because the sample and control are playing different roles here.
+where we've written the parentheses to emphasize the interpretation that $\WNt$ is just $\WN$ where we've added one of each word to the control dataset. Now using $\beta$ in the example above as a control, we get $\WNt(\text{"dog"})=\frac{2}{3}$ and $\WNt(\text{"cat"})=0$. For our setting $\WNt$ has the nice feature that common words ("is", "the", etc.) and general job words ("applicant", "responsibilities") get a score close to $0$, and so when we are looking at the top scores, these are automatically ignored. It loses the (anti)symmetry of $\WN$, but this is acceptable, because the sample and control are playing different roles here.
 
-When comparing two samples, we use
+When comparing two sample datasets, we can use
 \begin{equation} \label{eqn:WordNormComp}
  \WNp_{\alpha\beta}(w) = \frac{\alpha(w) - \beta(w)}{\alpha(w) + \beta(w) +1}.
 \end{equation}
-This is equivalent to adding half a count of each word to both samples. In a sense, we are saying that we expect that if $\alpha(w)=0$, the "real value" of $\alpha(w)$ is between 0 and 1, but we need a bigger sample to determine the value, so we guess that it is $0.5$, but then to be fair to the other words where $\alpha(w)>0$, we also add $0.5$ to their counts. Here the (anti)symmetry is restored, as it should be since both samples play interchangeable roles. \\
+This is equivalent to adding half a count of each word to both datasets. In a sense, we are saying that we expect that if $\alpha(w)=0$, the "real value" of $\alpha(w)$ is between 0 and 1, but we need a larger sample to determine the value, so we guess that it is $0.5$, but then to be fair to the other words where $\alpha(w)>0$, we also add $0.5$ to their counts. Here the (anti)symmetry is restored, as it should be since both datasets play interchangeable roles.
+
+Finally, to score a full document, we could try to naively take the average score of its words, but this would be a bad approach because there is a skewed level of importance for $\WN$ scores close to $\pm 1$. To understand this issue, consider what happens when we average a word with a score of $0.99$ with a word with a score of $0.00$ (using $\WNp$). The score of $0.99$ might represent 298 examples in the first dataset and 1 in the second, whereas a score of $0.00$ might represent 1 example in the first and 1 in the second. The average is $\approx 0.50$, which is the same as the average of two words with scores of $0.50$ each representing 4 examples in the first dataset and 1 in the second. Clearly, this is a problem for the naive average. To fix this issue, we can transform the range of $\WNp$ (from $(-1,1)$ to $(-\infty, \infty)$) by taking the inverse hyperbolic tangent, averaging these transformed scores, and then inverting the transformation, taking the hyperbolic tangent of the average. Written in mathematical notation this is
+\begin{equation} \label{eqn:TextScore}
+ \widehat{\TS}(\text{text}) = \tanh(\mean_{w \in \text{text}}(\tilde{w}))
+\end{equation}
+where $\tilde{w} = \atanh(\WNp(w))$. TextScore should be interpreted relative to the score on a control dataset, so we introduce a modified version of the above score
+\begin{equation} \label{eqn:modTS}
+ \TS(\text{text}) = \tanh(\mean_{w \in \text{text}}(\tilde{w}-\atanh(\widehat{\TS}(\text{control}))))
+\end{equation}
+\\
  
-\noindent [\textit{tldr: There are a few variations of WordNorm, but in all cases, it assigns a value between 1 and -1 to each word. 1 means the word is much more closely associated to the first bag of words, and -1 means the word is much more closely associated to the second. When one of these is the control, that will always be the second.}]
+\noindent [\textit{tldr: There are a few variations of $\WN$, but in all cases, it assigns a value between 1 and -1 to each word. 1 means the word is much more closely associated to the dataset, and -1 means the word is much more closely associated to the second. When one of these is the control, it will always be the second. $\TS$ is a kind of average $\WN$ over an entire document.}]
 
 \section{Results and Discussion} In Figure \ref{fig:WNt} we show the results of applying $\WNt$ to data science (vs. control) and to machine learning (vs. control). We see that the two give broadly similar scores validating the assertion that there is much overlap between the two. Languages such as R, Python and Spark, as well as the distributed system framework Hadoop appear in the top 10 for both.
 
@@ -149,16 +161,33 @@ Machine learning frameworks TensorFlow and Caffe are both represented with a str
 \caption{\label{fig:WNp} The result of comparing machine learning to data science with $\WNp$. Positive scores indicate stronger association with machine learning, and negative scores indicate stronger association with data science.}
 \end{figure}
 
-Using the $\WNp$ score, we can score any text in terms of whether it is more closely associated with data science or machine learning. For example, the Insight Data Science Fellows Program has a white paper with a section titled "What is a Data Scientist?". We can score this text, word by word, and then average to get a score of -0.13 indicating a closer association with data science than with machine learning.
+Using the $\TS$, we can score any text in terms of whether it is more closely associated with data science or machine learning\footnote{On the concatenation of the documents that made up the control dataset, the $\widehat{\TS}$ is $-0.143$, and so all $\TS$ scores following are normalized by this value.}. Note that because this is a kind of average, we should expect scores to be closer to 0 than on individual words. On an additional data science job description, the $\TS$ was $-0.084$. On an additional machine learning job description the $\TS$ was $0.103$. The first two pairs of texts in Figure \ref{fig:TextColored} show the first 50 words of these document, words colored according to their $\WN$\footnote{Normalized by the $\widehat{\TS}$ of the control.}.
 
-Figure \ref{fig:InsightColored} shows the first 40 words of this document, each colored according to their $\WNp$ score.
+We can even try this on documents that are not directly descriptions of a particular job. For example, the Insight Data Science Fellows Program has a white paper with a section titled "What is a Data Scientist?"\cite{InsightWP}. The third pair of texts Figure \ref{fig:TextColored} shows the first 50 words of this document, each colored according to their $\WNp$ score. The overall $\TS$ for this document is slightly less than 0, at $-0.005$.
 
-\begin{figure}[H]
+\begin{figure}[h]
+our clients seeks an experianced leader who will sit at the intersection of analytics data management it software infrastructure in the center for data science and analytics is an innovative corporate analytics group within the business they are a rapidly growing entrepreneurial department which aims to design create and offer
+
+{\color{b1}our} {\color{b2}clients} {\color{o1}seeks} {\color{w}an} {\color{o1}experianced} {\color{b2}leader} {\color{b1}who} {\color{w}will} {\color{o1}sit} {\color{w}at} {\color{b1}the} {\color{o1}intersection} {\color{w}of} {\color{b3}analytics} {\color{b1}data} {\color{b2}management} {\color{b1}it} {\color{o2}software} {\color{o3}infrastructure} {\color{w}in} {\color{b1}the} {\color{b2}center} {\color{w}for} {\color{b1}data} {\color{b2}science} {\color{w}and} {\color{b3}analytics} {\color{w}is} {\color{w}an} {\color{b1}innovative} {\color{b2}corporate} {\color{b3}analytics} {\color{o1}group} {\color{b2}within} {\color{b1}the} {\color{b2}business} {\color{b2}they} {\color{w}are} {\color{w}a} {\color{w}rapidly} {\color{b1}growing} {\color{o1}entrepreneurial} {\color{b1}department} {\color{b1}which} {\color{o1}aims} {\color{w}to} {\color{b1}design} {\color{w}create} {\color{w}and} {\color{o1}offer}\\
+
+machine learning researcher this is a new role designed for a new and unexplored environment designing machine learning and deep learning algorithms you will have petabytes of data state of the art hardware such as massive distributed clusters and gpus and professional support to develop ways to design complex and
+
+{\color{o3}machine} {\color{o3}learning} {\color{o1}researcher} {\color{b1}this} {\color{w}is} {\color{w}a} {\color{b1}new} {\color{b2}role} {\color{b1}designed} {\color{w}for} {\color{w}a} {\color{b1}new} {\color{w}and} {\color{o1}unexplored} {\color{w}environment} {\color{o1}designing} {\color{o3}machine} {\color{o3}learning} {\color{w}and} {\color{o2}deep} {\color{o3}learning} {\color{o2}algorithms} {\color{w}you} {\color{w}will} {\color{o1}have} {\color{o1}petabytes} {\color{w}of} {\color{b1}data} {\color{b1}state} {\color{w}of} {\color{b1}the} {\color{o1}art} {\color{o1}hardware} {\color{o2}such} {\color{w}as} {\color{o1}massive} {\color{o2}distributed} {\color{o4}clusters} {\color{w}and} {\color{o1}gpus} {\color{w}and} {\color{w}professional} {\color{w}support} {\color{w}to} {\color{o1}develop} {\color{b1}ways} {\color{w}to} {\color{b1}design} {\color{b1}complex} {\color{w}and}\\
+
 the amount of data produced across the globe has been increasing
-exponentially and will continue to grow at an accelerating rate for the foreseeable future at companies across all industries servers are overflowing with usage logs message streams transaction records\\
+exponentially and will continue to grow at an accelerating rate for the foreseeable future at companies across all industries servers are overflowing with usage logs message streams transaction records sensor data business operations records and mobile device data effectively
 
-{\color{b1}the} {\color{o1}amount} {\color{b1}of} {\color{b2}data} {\color{w}produced} {\color{b1}across} {\color{b1}the} {\color{b1}globe} {\color{b1}has} {\color{b2}been} {\color{w}increasing} {\color{w}exponentially} {\color{b1}and} {\color{b1}will} {\color{w}continue} {\color{b1}to} {\color{b2}grow} {\color{b1}at} {\color{b1}an} {\color{w}accelerating} {\color{o3}rate} {\color{b1}for} {\color{b1}the} {\color{w}foreseeable} {\color{b2}future} {\color{b1}at} {\color{b3}companies} {\color{b1}across} {\color{b2}all} {\color{w}industries} {\color{w}servers} {\color{b1}are} {\color{w}overflowing} {\color{b1}with} {\color{b1}usage} {\color{w}logs} {\color{o2}message} {\color{o1}streams} {\color{b1}transaction} {\color{w}records}
-\caption{\label{fig:InsightColored} The first 40 words of "What is a Data Scientist?" from the Insight Data Science Fellows white paper, first uncolored, then colored according to its $\WNp$ score. Data science associated words are blue, machine learning associated words are in orange, and lighter means closer to 0.}
+{\color{b1}the} {\color{o2}amount} {\color{w}of} {\color{b1}data} {\color{o1}produced} {\color{b1}across} {\color{b1}the} {\color{b1}globe} {\color{b1}has} {\color{b2}been} {\color{o1}increasing} {\color{o1}exponentially} {\color{w}and} {\color{w}will} {\color{o1}continue} {\color{w}to} {\color{b1}grow} {\color{w}at} {\color{w}an} {\color{o1}accelerating} {\color{o4}rate} {\color{w}for} {\color{b1}the} {\color{o1}foreseeable} {\color{b1}future} {\color{w}at} {\color{b2}companies} {\color{b1}across} {\color{b1}all} {\color{o1}industries} {\color{o1}servers} {\color{w}are} {\color{o1}overflowing} {\color{w}with} {\color{b1}usage} {\color{o1}logs} {\color{o3}message} {\color{o2}streams} {\color{w}transaction} {\color{o1}records} {\color{o1}sensor} {\color{b1}data} {\color{b2}business} {\color{b3}operations} {\color{o1}records} {\color{w}and} {\color{o1}mobile} {\color{o1}device} {\color{b1}data} {\color{w}effectively}
+
+\caption{\label{fig:TextColored} The first 50 words of three different texts: a data science job description, a machine learning job description and "What is a Data Scientist?". First shown in black, then colored according to its (normalized) $\WNp$ score. Data science associated words are blue, machine learning associated words are in orange, and lighter means closer to 0.}
 \end{figure}
+
+Finally, if we compute the $\TS$ for the concatenated documents that made up the control dataset, we get $-0.143$, perhaps indicating that the difference between data science jobs and the average job advertised online is smaller than the difference between machine learning jobs and the same average. 
+
+\clearpage
+
+\bibliographystyle{plain}
+
+\bibliography{refs}
 
 \end{document}

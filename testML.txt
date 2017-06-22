@@ -1,0 +1,60 @@
+﻿Machine Learning Researcher
+
+
+
+This is a new role designed for a new and unexplored environment. Designing machine learning and deep learning algorithms, you will have petabytes of data, state of the art hardware such as massive distributed clusters and GPUs, and professional support to develop ways to design complex and efficient models. Clinical development is an untapped domain space for modern data science so this position offers an opportunity to make a large impact on the industry.
+
+Additionally, this position is high profile within our organization as it is central to bringing together our data and our clinical expertise. It’s a role about big ideas and free thinking – leveraging tremendous global resources – with the freedom to make an enormous intellectual contribution to data science within the life sciences. This role also maintains collaboration with the academic industry and offers opportunity for self-directed research.
+
+You will be part of a small group of advanced machine learning researchers and while collaboration will be essential, there is a great deal of autonomy and home working may also be an option.
+
+Your typical activities might include:
+
+
+
+Developing deep learning, machine learning, and data mining technologies.
+Advanced feature engineering on time series, corpuses, and other sequential datasets.
+Predicting disease outcomes and early diagnoses.
+Designing new algorithms to find predictive patterns that combine heterogeneous data assets.
+Working with electronic medical records, healthcare claims, and clinical trial data.
+Working with technology teams to support machine-learning algorithms in big data platforms.
+Supporting customized projects by designing and implementing algorithms and statistical models on related datasets.
+Qualification:
+
+
+
+Our ideal candidate will have:
+
+A Masters’ degree with several years’ experience and a view to completing a PhD, or a minimum of PhD (with research in machine learning algorithms) if coming straight out of education.
+An in-depth understanding of machine learning algorithms and modeling.
+Experience in Python or R.
+Exposure to Spark/Hadoop and either Theano/Tensorflow/Caffe/Torch.
+Mastery of relevant mathematics for machine learning such as linear algebra and gradients.
+Fluent English language skills.
+Ideally you may have a mathematical background in Cognitive Science, Deep Learning, Advanced Semantic Design, Information Extraction, Information retrieval, Probabilistic Decision Marking, or similar.
+You can drive your career at QuintilesIMS and choose the path that best defines your development and success. With exposure across diverse geographies, capabilities, and vast therapeutic and information and technology areas, you can seek opportunities to change and grow without boundaries.
+
+We invite you to join us on our exciting journey. Apply now.
+
+Help us make a difference in patient health.
+
+QuintilesIMS is a strong advocate of diversity and inclusion in the workplace. We believe that a work environment that embraces diversity will give us a competitive advantage in the global marketplace and enhance our success. We believe that an inclusive and respectful workplace culture fosters a sense of belonging among our employees, builds a stronger team, and allows individual employees the opportunity to maximize their personal potential.
+
+Contact the job poster
+
+
+David O'Hara
+Sr Mgr, Talent Acquisition at QuintilesIMS
+Job Poster Location
+Greater Philadelphia Area
+Premium
+Send InMail
+Seniority Level
+Mid-Senior level
+
+Industry
+Pharmaceuticals Information Technology and Services Research
+Employment Type
+Full-time
+
+Job Functions

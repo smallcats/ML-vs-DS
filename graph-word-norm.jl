@@ -30,7 +30,7 @@ function barWordNormCtrl(datanorm, mlnorm)
 				color = [:orange :blue :blue :orange])
 end
 
-function produceLaTeXcolored!(text, scores)
+function produceLaTeXcolored!(text, contav, scoredict, numwords)
 	#=
 	creates a string of LaTeX code to produce the text given with the approximate
 		score shown.
@@ -48,10 +48,13 @@ function produceLaTeXcolored!(text, scores)
 	\definecolor{b4}{RGB}{70,88,245}
 	\definecolor{b5}{RGB}{242,46,242}
 	=#
+	words = texttowords(text)[1:numwords]
+	textscores = scoretextwords(words, scoredict)
+	normedtextscores = [tanh(atanh(k)-atanh(contav)) for k in textscores]
 	wordcodes = []
-	while length(text) > 0
-		word = shift!(text)
-		score = shift!(scores)
+	while length(words) > 0
+		word = shift!(words)
+		score = shift!(normedtextscores)
 		score = Int8(round(score*5))
 		if score > 0
 			color = "o$(score)"

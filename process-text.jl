@@ -83,7 +83,7 @@ function maxwords(sample, numwords)
   sort(collect(sample), by=tuple -> last(tuple),rev=true)[1:numwords]
 end
 
-function scoretext(textvec, scoredict, default=0)
+function scoretextwords(textvec, scoredict, default=0)
   #=
   Gets WordNorm scores for an array of words.
   args: textvec: an array of words
@@ -92,6 +92,37 @@ function scoretext(textvec, scoredict, default=0)
   returns: an array of scores, 0 for words not in scoredict
   =#
   [get(scoredict, k, default) for k in textvec]
+end
+
+function transformedaverage(scores)
+  #=
+  Given an array of WordNorm scores, gets the average of the transformed
+  (by tanh^{-1}) scores
+  =#
+  mean([atanh(k) for k in scores])
+end
+
+function totaltextscore(textvec, scoredict)
+  #=
+  Gets the overall score for a document.
+  args: textvec: an array with the words of the document to be scored
+        scoredict: the dict of WordNorm scores with respect to which the
+                   document will be scored
+  returns: textscore: the overall score of the document
+           textnormed: an array of scores normalized by comparison to the
+                       control text
+  =#
+  textscores = scoretextwords(textvec, scoredict)
+  tanh(transformedaverage(textscores))
+end
+
+function normalizedtextscore(textvec, contav, scoredict)
+  #=
+  Gets the TextScore, and WordNorm for the words of a text vector, normalized by
+    average control score (totaltextscore(controltext))
+  =#
+  normtransvec = [atanh(k)-atanh(contav) for k in scoretextwords(textvec, scoredict)]
+  tanh(mean(normtransvec))
 end
 
 function colorinterp(wordscore, c1=(247,163,46), c2=(24,46,242))
