@@ -38,26 +38,40 @@ def wordsTo5Grams(wordlist):
         grams.append(wordlist[k:k+2]+wordlist[k+3:k+5]+wordlist[k+2:k+3])
     return grams
 
-def getWordData(filenames):
+def getGrams(filenames):
     """
-    Gets word data (5-grams and vocab list) from files in string form.
+    Gets 5-grams from files in string form.
+    
     args: filenames: a list of file names
+    
     returns: grams: a list of length 5 lists of strings that are the 5-grams from the filenames, with the 3rd word in the last slot
-             vocab: a dict whose keys are vocab words and values are nonnegative integers.
-                       vocab[word] = k means that word is represented by the kth standard basis vector
     """
     grams = []
+    for filename in filenames:
+        text = importText(filename)
+        grams.extend(wordsTo5Grams(text))
+    return grams
+
+def getVocab(filenames):
+    """
+    Gets the vocab dict from a list of text files.
+
+    args: filenames: a list of file names (they should all be text files)
+
+    returns: vocab: a dict whose keys are vocab words and values are nonnegative integers.
+                       vocab[word] = k means that word is represented by the kth standard basis vector
+    """
     vocab_set = set()
     for filename in filenames:
         text = importText(filename)
         vocab_set.update(text)
-        grams.extend(wordsTo5Grams(text))
     vocab = dict()
     vnum = 0
     for word in vocab_set:
         vocab[word] = vnum
         vnum += 1
-    return grams, vocab
+    return vocab
+
 
 def getBatch(batchsize, grams, vocab, vocabdim = 0):
     """
@@ -100,8 +114,8 @@ def buildGuess(vocabsize, repdim):
     Wenc = tf.Variable(np.random.randn(vocabsize, repdim)/vocabsize, dtype = tf.float32)
     benc = tf.Variable(0.1*np.random.randn(repdim), dtype = tf.float32)
 
-    Wguess = tf.Variable(np.random.randn(4*repdim, vocabsize), dtype = tf.float32)
-    bguess = tf.Variable(np.random.randn(vocabsize), dtype=tf.float32)
+    Wguess = tf.Variable(np.random.randn(4*repdim, vocabsize)/(4*repdim), dtype = tf.float32)
+    bguess = tf.Variable(0.1*np.random.randn(vocabsize), dtype=tf.float32)
 
     #layers
     in_layer = tf.placeholder(dtype=tf.float32, shape=(None, 4*vocabsize))
@@ -114,6 +128,39 @@ def buildGuess(vocabsize, repdim):
 
     return in_layer, guess_layer
 
+def buildGuess2(vocabsize, repdims):
+    """
+    2-layer verion of buildGuess. repdims is a tuple of 2 layers of weights.
+    """
+    #parameters:
+    W1enc = tf.Variable(np.random.randn(vocabsize, repdims[0])/vocabsize, dtype = tf.float32)
+    b1enc = tf.Variable(0.1*np.random.randn(repdims[0]), dtype = tf.float32)
+    W2enc = tf.Variable(np.random.randn(repdims[0], repdims[1])/repdims[0], dtype = tf.float32)
+    b2enc = tf.Variable(0.1*np.random.randn(repdims[1]), dtype = tf.float32)
+
+    W1guess = tf.Variable(np.random.randn(4*repdims[1], 4*repdims[0])/(4*repdims[1]), dtype = tf.float32)
+    b1guess = tf.Variable(0.1*np.random.randn(4*repdims[0]), dtype=tf.float32)
+    W2guess = tf.Variable(np.random.randn(4*repdims[0], vocabsize)/(4*repdims[0]), dtype=tf.float32)
+    b2guess = tf.Variable(0.1*np.random.randn(vocabsize), dtype=tf.float32)
+
+    #layers
+    in_layer = tf.placeholder(dtype=tf.float32, shape=(None, 4*vocabsize))
+    
+    rep1_layer1 = tf.nn.sigmoid(tf.matmul(tf.slice(in_layer, begin=(0,0), size=(-1, vocabsize)), W1enc) + b1enc)
+    rep1_layer2 = tf.nn.sigmoid(tf.matmul(tf.slice(in_layer, begin=(0,vocabsize), size=(-1, vocabsize)), W1enc) + b1enc)
+    rep1_layer4 = tf.nn.sigmoid(tf.matmul(tf.slice(in_layer, begin=(0,2*vocabsize), size=(-1, vocabsize)), W1enc) + b1enc)
+    rep1_layer5 = tf.nn.sigmoid(tf.matmul(tf.slice(in_layer, begin=(0,3*vocabsize), size=(-1, vocabsize)), W1enc) + b1enc)
+
+    rep2_layer1 = tf.nn.sigmoid(tf.matmul(rep1_layer1, W2enc) + b2enc)
+    rep2_layer2 = tf.nn.sigmoid(tf.matmul(rep1_layer2, W2enc) + b2enc)
+    rep2_layer4 = tf.nn.sigmoid(tf.matmul(rep1_layer4, W2enc) + b2enc)
+    rep2_layer5 = tf.nn.sigmoid(tf.matmul(rep1_layer5, W2enc) + b2enc)
+    
+    hid_layer = tf.nn.sigmoid(tf.matmul(tf.concat([rep2_layer1, rep2_layer2, rep2_layer4, rep2_layer5], 1), W1guess) + b1guess)
+    guess_layer = tf.matmul(hid_layer, W2guess) + b2guess #softmax shows up with the losses in the training graph
+
+    return in_layer, guess_layer
+    
 def buildEncode(vocabsize, repdim):
     """
     Builds the tensorflow graph for encoding words after training on the guess graph.
@@ -138,12 +185,35 @@ def buildEncode(vocabsize, repdim):
 
     return init, restorer, rep_layer
 
-def buildTraining(vocabsize, repdim):
+def buildEncode2(vocabsize, repdims):
+    """
+    2-layer version of buildEncode. repdims should be a tuple of length 2.
+    """
+    #parameters
+    W1enc = tf.Variable(np.zeros((vocabsize,repdims[0])), dtype=tf.float32)
+    b1enc = tf.Variable(np.zeros(repdims[0]), dtype=tf.float32)
+    W2enc = tf.Variable(np.zeros((repdims[0],repdims[1])), dtype=tf.float32)    
+    b2enc = tf.Variable(np.zeros(repdims[1]), dtype=tf.float32)
+
+    #layers
+    in_layer = tf.constant(np.eye(vocabsize), dtype=tf.float32)
+    hid_layer = tf.nn.sigmoid(tf.matmul(in_layer, W1enc) + b1enc)
+    rep_layer = tf.matmul(hid_layer, W2enc) +b2enc
+
+    #initialization
+    init = tf.global_variables_initializer()
+    restorer = tf.train.Saver()
+
+    return init, restorer, rep_layer
+
+
+def buildTraining(vocabsize, repdims, guess=buildGuess):
     """
     Build the tensorflow graph for training Word2Vec on the guess graph.
 
     args: vocabsize: the number of words in the vocab.
-          repdim: the number of encoding dimensions.
+          repdims: the number of encoding dimensions. If using guess=buildGuess2, should be a tuple of 2 dimension sizes.
+          guess: the function that builds the guess graph.
 
     returns: in_layer: input layer placeholder
              labels: labels placeholder
@@ -153,7 +223,7 @@ def buildTraining(vocabsize, repdim):
              saver: Saver object for saving weights
     """
     #build guess graph
-    in_layer, guess_layer = buildGuess(vocabsize, repdim)
+    in_layer, guess_layer = guess(vocabsize, repdims)
     labels = tf.placeholder(dtype=tf.float32, shape=(None, vocabsize))
 
     #training
@@ -169,28 +239,26 @@ def buildTraining(vocabsize, repdim):
 
 #-----------------------------Run graphs--------------------------------
 
-def runTraining(in_layer, labels, train_step, loss, init, saver, filenames, batchsize=10, ts_per_epoch=10, num_epochs=10, valid_frac=10, model_name = 'model'):
+def runTraining(in_layer, labels, train_step, loss, init, saver, grams, vocab, batchsize=10, ts_per_epoch=10, num_epochs=10, valid_frac=10, model_name = 'model'):
     """
     Trains and saves on the training graph.
 
     args: in_layer, labels, train_step, loss, init, saver (see buildTraining function for more details)
+          grams: the list of 5-grams on which the network will be trained
+          vocab: the vocab dict for grams
           batchsize: the size of batches on which to train
           num_epochs: the number of epochs (1 epoch = 10 train steps, validation run after each epoch)
           ts_per_epoch: the number of training steps per epoch
           valid_frac: 1/valid_frac is the fraction of the samples used as validation set (test set is the same size).
           model_name: the name of the model for saving .ckpt files
           
-    returns: vocab: the vocab on which the network is trained
-             train_losses: losses on the training set after each train step (len(train_losses)=10*num_epochs)
+    returns: train_losses: losses on the training set after each train step (len(train_losses)=10*num_epochs)
              valid_losses: losses on the validation set after each epoch (len(valid_losses)=num_epochs)
              test_loss: average loss on the test set (a scalar)
              save_epoch: the epoch after which parameters were saved (due to early stopping)
     """
-    #get data
-    grams, vocab = getWordData(filenames)
-    shuffle(grams)
-
     #divide into train, valid, test
+    shuffle(grams)
     vocabsize = len(vocab)
     valid_size = len(grams)//valid_frac #size of validation and test sets
     train_grams = grams[:len(grams)-2*valid_size]
@@ -222,7 +290,7 @@ def runTraining(in_layer, labels, train_step, loss, init, saver, filenames, batc
         test_loss = sess.run(loss, {in_layer: test_arr, labels: labels_arr})
         print('Parameters are saved under the name: {0}'.format(model_name))
     tf.reset_default_graph()
-    return vocab, train_losses, valid_losses, test_loss, save_epoch
+    return train_losses, valid_losses, test_loss, save_epoch
         
 def runEncode(init, restorer, rep_layer, vocab, model_name='model'):
     """
@@ -239,22 +307,31 @@ def runEncode(init, restorer, rep_layer, vocab, model_name='model'):
     encoding = dict()
     for word in vocab.keys():
         encoding[word] = encode_arr[vocab[word]][:]
-    np.save('.\\Models\\'+model_name+'.npy', encoding)
+    np.save('.\\Models\\'+model_name+'_encoding.npy', encoding)
     tf.reset_default_graph()
     return encoding
 
-def main(repdim):
+def main(repdims, guess = buildGuess, model_name = 'model'):
     """
     Preps the data, runs the training, saves the model, runs the encoding and saves that, and then graphs the training
+
+    args: repdims: if guess = buildGuess, the number of representation dimensions. if guess = buildGuess2, a tuple of the two representation dimensions
     """
+    if guess == buildGuess:
+        encode = buildEncode
+    else: encode = buildEncode2
     filenames = getFileNames('.\\Control_group')
     filenames.extend(getFileNames('.\\Data_group'))
     filenames.extend(getFileNames('.\\ML_group'))
+    vocab = getVocab(filenames)
+    np.save('.\\Models\\'+model_name+'_vocab.npy', vocab)
+    grams = getGrams(filenames)
     vocabsize = 5944
-    nodes = buildTraining(vocabsize, repdim)
-    vocab, train_losses, valid_losses, test_loss, save_epoch = runTraining(*nodes, filenames, batchsize=20, ts_per_epoch=100, num_epochs=100)
-    nodes = buildEncode(vocabsize, repdim)
-    encoding = runEncode(*nodes, vocab)
+    nodes = buildTraining(vocabsize, repdims, guess)
+    #batch = 20, ts = 100, del valid_frac
+    train_losses, valid_losses, test_loss, save_epoch = runTraining(*nodes, grams, vocab, batchsize=20, ts_per_epoch=100, num_epochs=100, model_name=model_name)
+    nodes = encode(vocabsize, repdims)
+    encoding = runEncode(*nodes, vocab, model_name=model_name)
     print('In epoch {0}, the model was saved. The correct word had was given a 1/{1} chance at that time.'.format(save_epoch, exp(-test_loss)))
     x1 = np.arange(0,10000)
     x2 = np.arange(0,10000, 100)
@@ -263,6 +340,6 @@ def main(repdim):
     plt.legend()
     plt.xlabel('Training step')
     plt.ylabel('Cross-Entropy')
-    plt.title('Training a {0} Dimensional Word2Vec Encoding'.format(repdim))
+    plt.title('Training a {0} Dimensional Word2Vec Encoding'.format(repdims[1]))
     plt.show()
     return encoding
