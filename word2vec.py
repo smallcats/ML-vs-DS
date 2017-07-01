@@ -6,6 +6,7 @@ from os import listdir as ls
 from matplotlib import pyplot as plt
 from random import shuffle
 from math import exp
+from sklearn import svm
 
 cd('C:\\Users\\Geoffrey\\Documents\\Job_descriptions')
 
@@ -319,7 +320,10 @@ def main(repdims, guess = buildGuess, model_name = 'model'):
     """
     if guess == buildGuess:
         encode = buildEncode
-    else: encode = buildEncode2
+        rd = repdims
+    else:
+        encode = buildEncode2
+        rd = repdims[1]
     filenames = getFileNames('.\\Control_group')
     filenames.extend(getFileNames('.\\Data_group'))
     filenames.extend(getFileNames('.\\ML_group'))
@@ -328,7 +332,6 @@ def main(repdims, guess = buildGuess, model_name = 'model'):
     grams = getGrams(filenames)
     vocabsize = 5944
     nodes = buildTraining(vocabsize, repdims, guess)
-    #batch = 20, ts = 100, del valid_frac
     train_losses, valid_losses, test_loss, save_epoch = runTraining(*nodes, grams, vocab, batchsize=20, ts_per_epoch=100, num_epochs=100, model_name=model_name)
     nodes = encode(vocabsize, repdims)
     encoding = runEncode(*nodes, vocab, model_name=model_name)
@@ -340,6 +343,53 @@ def main(repdims, guess = buildGuess, model_name = 'model'):
     plt.legend()
     plt.xlabel('Training step')
     plt.ylabel('Cross-Entropy')
-    plt.title('Training a {0} Dimensional Word2Vec Encoding'.format(repdims[1]))
+    plt.title('Training a {0} Dimensional Word2Vec Encoding'.format(rd))
     plt.show()
     return encoding
+
+def docAvg(filename, encoding):
+    """
+    Finds the average of the word vectors in a document.
+
+    args: filename: the name of the text file
+          encoding: the encoding resulting from running W2V
+
+    returns: doc_mean: the average of the documents' word vectors.
+    """
+    text_list = importText(filename)
+    word_vecs = [encoding[word] for word in text_list]
+    return np.mean(np.array(word_vecs), axis = 0)
+
+def svmDocAvg(encoding):
+    """
+    Runs a linear SVM analysis on document averages of W2V encodings. ml label is 1, ds label is 0.
+
+    args: encoding: the W2V encoding
+
+    returns: classifier: the SVM classifier (a sklearn.svm.LinearSVC object).
+             valid_acc: the validation accuracy
+             test_acc: the test accuracy
+    """
+    #get data
+    ml_filenames = getFileNames('.\\ML_group')
+    ds_filenames = getFileNames('.\\Data_group')
+    shuffle(ml_filenames)
+    shuffle(ds_filenames)
+
+    #apply docAvg
+    ml_avgs = [docAvg(filename, encoding) for filename in ml_filenames]
+    ds_avgs = [docAvg(filename, encoding) for filename in ds_filenames]
+
+    #put data in form usable by sklearn.svm
+    train_avgs = ml_avgs[:40]+ds_avgs[:40]
+    train_labs = np.concatenate((np.ones(40), np.zeros(40)))
+
+    #create and train classifier
+    classifier = svm.LinearSVC()
+    classifier.fit(train_avgs, train_labs)
+
+    #test classifier on validation and test sets
+    valid_acc = classifier.score(ml_avgs[40:45]+ds_avgs[40:45], np.concatenate((np.ones(5), np.zeros(5))))
+    test_acc = classifier.score(ml_avgs[45:]+ds_avgs[45:], np.concatenate((np.ones(5), np.zeros(5))))
+
+    return classifier, valid_acc, test_acc, ml_avgs, ds_avgs

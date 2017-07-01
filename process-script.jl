@@ -4,7 +4,7 @@ include("loadDesc.jl");
 include("process-text.jl");
 
 desc = loadDesc()
-insighttext = loadInsight();
+#insighttext = loadInsight();
 desc = [join(desc[k], " ") for k=1:3];
 
 #controlwords = wordcount(texttowords(desc[1]));
@@ -16,7 +16,7 @@ mlwords = wordcount(texttowords(desc[3]));
 
 mlvsds = comparenorm(mlwords, datawords);
 
-insighttextvec = texttowords(insighttext);
-insightscore = totaltextscore(insighttextvec, mlvsds);
+#insighttextvec = texttowords(insighttext);
+#insightscore = totaltextscore(insighttextvec, mlvsds);
 conttextvec = texttowords(desc[1]);
 contscore = totaltextscore(conttextvec, mlvsds);
