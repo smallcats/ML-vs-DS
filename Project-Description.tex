@@ -80,7 +80,7 @@
 \maketitle
 \section{Introduction} Data science is the practice of extracting useful information from data. Machine learning is a set of programming techniques in which the programmer sets up a model with variable parameters and a method by which these parameters will be "learned" from data. There. Question answered. In practice, however, when searching for a job, it isn't so clear. Because of the large overlap between the two, a job listed as a data science job may really be more of a machine learning job, and vice versa. And perhaps you want to pick up a few new, relevant skills, but you are interested in one of the two fields, and not the other. Can we disentangle which skills are more relevant to your chosen field from the job descriptions posted for applicants?
 
-The goal of this project is to use textual analysis to solve this issue. Code was written in the new and exciting programming language Julia. This document was produced using \LaTeX\ and Julia (figures all come from Julia\cite{Julia} or from \LaTeX\ code produced by Julia code).
+The goal of this project is to use textual analysis to solve this issue. We start with a standard set of methods, using Support Vector Machines (SVMs) with and without Word2Vec. This, however, has the disadvantage that it only provides a method for distinguishing, but no more detailed analysis. So, we move on to an original method we call WordNorm, which adds a numerical value that quantifies the extent to which a document lies in data science v.s. machine learning, and also gives a word-by-word analysis, in addition to distinguishing. The SVMs were created using the Python package sklearn, and Word2Vec was implemented in TensorFlow. Code for WordNorm was written in the new and exciting programming language Julia \cite{Julia}. This document was produced using \LaTeX\, PyPlot (for most figures) and Julia (some figures are from \LaTeX\ code produced by Julia code).
 
 \section{Data} The data for this project is 150 posted job descriptions\cite{LinkedIn}. They are divided into three datasets, the machine learning descriptions (50), the data science descriptions (50), and the control descriptions (50). These were gathered by doing searches for the relevant words ("machine learning job"/"data science job"/"job"), and then divided into sequences of words using regular expressions. In Julia this is implemented as:
 
@@ -92,8 +92,7 @@ function texttowords(text)
     )
 end
 \end{verbatim}
-
-The sequences of words were then divided into "bags of words" (i.e. word counts), one for each of the datasets.
+(and similarly in Python). The sequences of words were then divided into "bags of words" (i.e. word counts), one for each of the datasets.
 
 \begin{verbatim}
 function wordcount(wordvec)
@@ -103,9 +102,16 @@ function wordcount(wordvec)
   end
   worddict
 end
-\end{verbatim} 
+\end{verbatim}
 
-\section{WordNorm} To compare two of the datasets, we will use two variations on what we will call "WordNorm" (for non-technical folks, you can skip from here to the tldr at the end if this section, if you want). For datasets $\alpha$ and $\beta$ (e.g. $\alpha = \text{data science}$ and $\beta = \text{control}$) and word $w$, the ideal version of WordNorm
+\section{Methods}
+\subsection{SVMs and Word2Vec} Linear Support Vector Machines give a simple method for distinguishing between two classes given as data points in a (possibly high-dimensional) space by finding a hyperplane that divides them as well as is possible. More general SVMs could easily be used, but were found to provide no advantage in this setting.
+
+In order to encode a document as a point in space, we can do several things. The simplest approach is to use the one-hot encoding for the individual words (so each is viewed as a standard basis vector a space with dimension equal to the number of words), and then average the vectors representing these words in a document to get a vector representing each document. In our corpus of job descriptions there are 5944 distinct words, meaning that the space in which our data is represented is 5944-dimensional. Having this many features (each dimension represents a feature of the document, i.e., how many of a particular word is in that document) with only 100 examples (150 if you include control documents) is not good, and may affect generalizability of this method. To fix this, we can compress our encoding using the standard Word2Vec CBOW method (which has the added advantage of using the data of the word order to define the encoding, data which would otherwise be thrown away).
+
+Briefly, Word2Vec is a method similar to that of autoencoders, in which we obtain an encoding for words from the first half of a neural net which first encodes the words, and then tries to do some task with the encoded word. Unlike autoencoders, with Word2Vec we are not reconstructing the word (as the word itself has no structure, and so the encoding obtained by this wouldn't reflect anything about the word), but instead we try to fill in the blank from a sequence of words extracted in order from text. In this case, we train the Word2Vec network to guess the middle word in a sequence of five words from the other four. We use a simple 2-layer net in which the first layer encodes the four outer words, and then next guesses the middle word from the encoded outer words.
+
+\subsection{WordNorm} To compare two of the datasets, we will use two variations on what we will call "WordNorm" (for non-technical folks, you can skip from here to the tldr at the end if this section, if you want). For datasets $\alpha$ and $\beta$ (e.g. $\alpha = \text{data science}$ and $\beta = \text{control}$) and word $w$, the ideal version of WordNorm
 \begin{equation} \label{eqn:WordNorm}
  \WN_{\alpha\beta}(w) = \frac{\alpha(w)-\beta(w)}{\alpha(w)+\beta(w)}
 \end{equation}
@@ -139,7 +145,36 @@ where $\tilde{w} = \atanh(\WNp(w))$. TextScore should be interpreted relative to
  
 \noindent [\textit{tldr: There are a few variations of $\WN$, but in all cases, it assigns a value between 1 and -1 to each word. 1 means the word is much more closely associated to the dataset, and -1 means the word is much more closely associated to the second. When one of these is the control, it will always be the second. $\TS$ is a kind of average $\WN$ over an entire document.}]
 
-\section{Results and Discussion} In Figure \ref{fig:WNt} we show the results of applying $\WNt$ to data science (vs. control) and to machine learning (vs. control). We see that the two give broadly similar scores validating the assertion that there is much overlap between the two. Languages such as R, Python and Spark, as well as the distributed system framework Hadoop appear in the top 10 for both.
+\section{Results and Discussion}
+\subsection{SVMs and Word2Vec} First, using a Linear SVM on the unencoded representation of words, we obviously successfully divide the training set into two regions giving a training accuracy of 100\%, but on the validation set, we only obtain an accuracy of 60\% (6 put of 10 documents correctly classified). This justifies the addition of Word2Vec embeddings.
+
+Using a Word2Vec embedding into two dimensions (see Figure \ref{fig:trainW2V2} for the training data) allows us to visualize the resulting embeddings, as shown in Figure \ref{fig:W2VEmb}. As expected, we see that this does not immediately introduce a classification of words into data science vs machine learning associated words, however we do see some semantic information being reproduced, for example the words representing frameworks for implementing (parts of) machine learning ('apache', 'torch', 'caffe', 'tensorflow') all cluster in the same region.
+
+\begin{figure}[h]
+\includegraphics[scale=1]{C:/Users/Geoffrey/Documents/Job_descriptions/TrainingW2V2.png}
+\caption{\label{fig:trainW2V2} Training curves for 2-dimensional Word2Vec. Note that the validation curve continues to fall (though slowly at the end) throughout the training, however, training and validation loss begin to diverge near the end of training.}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[scale=1]{C:/Users/Geoffrey/Documents/Job_descriptions/W2VplotTop30.png}
+\caption{\label{fig:W2VEmb} Embeddings of selected words in 2-dimensional space using Word2Vec. Words chosen were the highest WordNorm scoring words for data science and machine learning, colored according to the category in which they scored highly.}
+\end{figure}
+
+Though a 2-dimensional representation is nice for visualization, using it with an SVM does not allow us to separate data science job descriptions from machine learning ones (see Figure \ref{fig:SVM2d}). On the validation set, this SVM correctly identified 50\% of the job descriptions.
+
+\begin{figure}[h]
+\includegraphics[scale=1]{C:/Users/Geoffrey/Documents/Job_descriptions/2dsvm.png}
+\caption{\label{fig:SVM2d} Using a Linear SVM on the scores for data science vs machine learning job descriptions from a 2-dimensional implementation of Word2Vec.}
+\end{figure}
+
+Using higher dimensional embeddings will allow us to get a better performance. Using a 10-dimensional encoding we get an 80\% accuracy on the validation set and using a 100-dimensional encoding gives a 90\% accuracy on the validation set. We conclude that the 100-dimensional encoding is the best choice for this task. The test set also gives a 90\% accuracy for the 100-dimensional embedding. Figure \ref{fig:100dsvm} shows a projection of the 100-dimensional embedding down to 2 dimensions.
+
+\begin{figure}[h]
+\includegraphics[scale=1]{C:/Users/Geoffrey/Documents/Job_descriptions/100dsvm.png}
+\caption{\label{fig:100dsvm} The 100 dimensional embedding projected down to 2 dimensions, such that the dividing hyperplane is a line. This visualization includes the training, validation and test sets.}
+\end{figure}
+
+\subsection{WordNorm} In Figure \ref{fig:WNt} we show the results of applying $\WNt$ to data science (vs. control) and to machine learning (vs. control). We see that the two give broadly similar scores validating the assertion that there is much overlap between the two. Languages such as R, Python and Spark, as well as the distributed system framework Hadoop appear in the top 10 for both.
 
 For "visualization" we see a higher data science score, confirming the stronger importance of communicating findings to allow companies to make informed business decisions, whereas the higher machine learning score for "ai" indicates the importance of building automated systems as a product in themselves. The word "academy" appears at first to be strongly associated with data science and strongly dissassociated with machine learning, however, it is an aberration which should be ignored, as it is on this list only because it appeared a very large number of times in one particular data science job description, and not at all in the control and machine learning data.
 

@@ -393,3 +393,19 @@ def svmDocAvg(encoding):
     test_acc = classifier.score(ml_avgs[45:]+ds_avgs[45:], np.concatenate((np.ones(5), np.zeros(5))))
 
     return classifier, valid_acc, test_acc, ml_avgs, ds_avgs
+
+def plotSVM(dataseries1, dataseries2, coef, intercept, title):
+    x = np.arange(-10,10,0.01)
+    y = -coef[0]/coef[1]*x - intercept/coef[1]
+    plt.plot(x,y)
+    ax = plt.subplot()
+    d = np.zeros(len(y))
+    e = -np.ones(len(y))
+    ax.fill_between(x, y, where=y<d, color='b', alpha=0.3)
+    ax.fill_between(x, y, e, color='#ffa500', alpha=0.3)
+    ml_plt = plt.scatter([k[0] for k in dataseries1], [k[1] for k in dataseries1],c='#ffa500')
+    ds_plt = plt.scatter([k[0] for k in dataseries2], [k[1] for k in dataseries2],c='b')
+    plt.legend((ml_plt, ds_plt),('Machine Learning','Data Science'))
+    plt.title(title)
+    plt.show()
+    return None
