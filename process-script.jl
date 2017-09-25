@@ -7,12 +7,12 @@ desc = loadDesc()
 #insighttext = loadInsight();
 desc = [join(desc[k], " ") for k=1:3];
 
-#controlwords = wordcount(texttowords(desc[1]));
+controlwords = wordcount(texttowords(desc[1]));
 datawords = wordcount(texttowords(desc[2]));
 mlwords = wordcount(texttowords(desc[3]));
 
-#mlnorm = normalize(mlwords,controlwords);
-#datanorm = normalize(datawords,controlwords);
+mlnorm = normalize(mlwords,controlwords);
+datanorm = normalize(datawords,controlwords);
 
 mlvsds = comparenorm(mlwords, datawords);
 
